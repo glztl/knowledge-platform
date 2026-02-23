@@ -19,9 +19,7 @@ public class CategoryEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = -874655287300177784L;
 
-    /**
-     * 分类id
-     */
+
     @TableId(value = "id", type = IdType.AUTO)
     @Schema(description = "分类id")
     private Long id;
