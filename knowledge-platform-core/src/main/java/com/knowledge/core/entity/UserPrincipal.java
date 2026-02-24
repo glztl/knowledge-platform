@@ -11,6 +11,7 @@ import java.util.Collections;
 
 /**
  * Spring Security 用户详情
+ * @author: nuts_tian
  */
 @Data
 @EqualsAndHashCode(callSuper = false)

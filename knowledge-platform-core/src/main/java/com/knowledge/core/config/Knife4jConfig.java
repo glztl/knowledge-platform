@@ -9,12 +9,13 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * Knife4j 增强版 Swagger 配置
+ * @author: nuts_tian
  */
 @Configuration
 public class Knife4jConfig {
 
     @Bean
-    public OpenAPI openAPI() {
+    public OpenAPI openApi() {
         return new OpenAPI()
                 .info(new Info()
                         .title(" 知识管理平台 API")

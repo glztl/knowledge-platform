@@ -9,6 +9,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
  * 用户服务
+ * @author: nuts_tian
  */
 public interface UserService extends UserDetailsService {
 
