@@ -1,32 +1,36 @@
 package com.knowledge.core.controller;
 
 
+
 import com.knowledge.core.common.result.Result;
 import com.knowledge.core.dto.UserLoginDTO;
 import com.knowledge.core.dto.UserRegisterDTO;
+import com.knowledge.core.entity.UserPrincipal;
 import com.knowledge.core.service.UserService;
 import com.knowledge.core.vo.LoginVO;
 import com.knowledge.core.vo.UserVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-
 /**
- * @author: nuts_tian
+ * @author nuts_tian
  */
+@Tag(name = " 用户管理", description = "用户注册、登录、信息管理")
 @RestController
 @RequestMapping("/user")
+@RequiredArgsConstructor
 public class UserController {
 
-
-    @Resource
-    private UserService userService;
+    private final UserService userService;
 
     @Operation(summary = "用户注册", description = "创建新用户账号")
     @ApiResponse(responseCode = "200", description = "注册成功",
@@ -54,15 +58,10 @@ public class UserController {
     @ApiResponse(responseCode = "200", description = "获取成功",
             content = @Content(schema = @Schema(implementation = UserVO.class)))
     @GetMapping("/profile")
-    public Result<UserVO> getProfile() {
-        // TODO: 从 SecurityContext 获取当前用户ID（JWT集成后实现）
-        // 临时返回 mock 数据
-        UserVO vo = new UserVO();
-        vo.setId(1L);
-        vo.setUsername("mock_user");
-        vo.setEmail("mock@example.com");
-        vo.setNickname("Mock用户");
-        return Result.success(vo);
+    public Result<UserVO> getProfile(@AuthenticationPrincipal UserDetails userDetails) {
+        // 从 SecurityContext 获取当前用户
+        String username = userDetails.getUsername();
+        UserVO userVO = userService.getById(((UserPrincipal) userDetails).getId());
+        return Result.success(userVO);
     }
-
 }

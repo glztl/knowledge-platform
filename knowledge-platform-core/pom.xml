@@ -9,9 +9,9 @@
         <relativePath/>
     </parent>
     <groupId>com.knowledge</groupId>
-    <artifactId>knowledge-platform</artifactId>
+    <artifactId>knowledge-platform-core</artifactId>
     <version>1.0.0</version>
-    <name>knowledge-platform</name>
+    <name>knowledge-platform-core</name>
     <description>个人知识管理平台 - Notion/语雀简化版</description>
 
     <properties>

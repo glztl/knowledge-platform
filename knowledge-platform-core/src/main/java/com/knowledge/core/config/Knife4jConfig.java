@@ -17,7 +17,7 @@ public class Knife4jConfig {
     public OpenAPI openAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("📚 知识管理平台 API")
+                        .title(" 知识管理平台 API")
                         .description("### 个人知识管理平台 API 文档")
                         .version("v1.0.0")
                         .contact(new Contact()

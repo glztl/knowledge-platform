@@ -6,6 +6,9 @@ import com.knowledge.core.entity.UserEntity;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+/**
+ * @author 11695
+ */
 @Mapper
 public interface UserMapper extends BaseMapper<UserEntity> {
     /**

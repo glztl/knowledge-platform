@@ -5,11 +5,12 @@ import com.knowledge.core.dto.UserRegisterDTO;
 import com.knowledge.core.entity.UserEntity;
 import com.knowledge.core.vo.LoginVO;
 import com.knowledge.core.vo.UserVO;
+import org.springframework.security.core.userdetails.UserDetailsService;
 
 /**
  * 用户服务
  */
-public interface UserService {
+public interface UserService extends UserDetailsService {
 
     UserVO register(UserRegisterDTO userRegisterDTO);
 
