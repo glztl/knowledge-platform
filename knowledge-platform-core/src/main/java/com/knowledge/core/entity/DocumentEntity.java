@@ -76,6 +76,24 @@ public class DocumentEntity implements Serializable {
     private Integer status;
 
     /**
+     * 分享令牌
+     */
+    @TableField("share_token")
+    private String shareToken;
+
+    /**
+     * 分享密码（BCrypt）
+     */
+    @TableField("share_password")
+    private String sharePassword;
+
+    /**
+     * 分享过期时间
+     */
+    @TableField("share_expire_at")
+    private LocalDateTime shareExpireAt;
+
+    /**
      * 创建时间
      */
     @TableField(fill = FieldFill.INSERT)

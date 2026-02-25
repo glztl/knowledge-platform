@@ -16,7 +16,9 @@ import com.knowledge.core.mapper.DocumentMapper;
 import com.knowledge.core.mapper.DocumentTagMapper;
 import com.knowledge.core.mapper.TagMapper;
 import com.knowledge.core.service.DocumentService;
+import com.knowledge.core.service.DocumentVersionService;
 import com.knowledge.core.vo.DocumentVO;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,9 +36,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEntity> implements DocumentService {
 
-    private final CategoryMapper categoryMapper;
-    private final TagMapper tagMapper;
-    private final DocumentTagMapper documentTagMapper;
+    @Resource
+    private CategoryMapper categoryMapper;
+
+    @Resource
+    private TagMapper tagMapper;
+
+    @Resource
+    private DocumentTagMapper documentTagMapper;
+
+    @Resource
+    private DocumentVersionService documentVersionService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -59,6 +69,9 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         document.setViewCount(0);
         document.setStatus(1);
         baseMapper.insert(document);
+
+        // 保存新版本
+        documentVersionService.saveVersion(document.getId(), userId, "文档创建");
 
         // 3. 处理标签
         if (!CollectionUtils.isEmpty(dto.getTagIds())) {
@@ -96,6 +109,9 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
             document.setIsPublic(dto.getIsPublic());
         }
         baseMapper.updateById(document);
+
+        // 保存新版本
+        documentVersionService.saveVersion(document.getId(), userId, "文档更新");
 
         // 4. 更新标签（先删除旧标签，再添加新标签）
         if (dto.getTagIds() != null) {

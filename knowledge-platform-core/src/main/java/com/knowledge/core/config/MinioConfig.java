@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 
 /**
  * MinIO 配置类
+ * @author: nuts_tian
  */
 @Data
 @Configuration

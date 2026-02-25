@@ -12,10 +12,11 @@ import com.knowledge.core.vo.FileVO;
 import io.minio.*;
 import io.minio.http.Method;
 import jakarta.annotation.Resource;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -41,6 +42,8 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, FileEntity> impleme
     @Value("${minio.bucket}")
     private String bucket;
 
+    @Getter
+    @Setter
     @Value("${minio.endpoint}")
     private String endpoint;
 
@@ -253,4 +256,5 @@ public class FileServiceImpl extends ServiceImpl<FileMapper, FileEntity> impleme
             );
         }
     }
+
 }
