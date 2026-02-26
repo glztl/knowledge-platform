@@ -2,6 +2,7 @@ package com.knowledge.core.controller;
 
 import com.knowledge.core.common.exception.BusinessException;
 import com.knowledge.core.common.result.Result;
+import com.knowledge.core.dto.CategoryCreateDTO;
 import com.knowledge.core.entity.CategoryEntity;
 import com.knowledge.core.entity.UserPrincipal;
 import com.knowledge.core.service.CategoryService;
@@ -11,7 +12,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -42,20 +43,16 @@ public class CategoryController {
         return Result.success(tree);
     }
 
+    @PostMapping
     @Operation(summary = "创建分类", description = "创建新的分类")
     @ApiResponse(responseCode = "200", description = "创建成功",
             content = @Content(schema = @Schema(implementation = CategoryEntity.class)))
-    @PostMapping
     public Result<CategoryEntity> create(
-            @Parameter(description = "分类名称", required = true, example = "技术笔记")
-            @NotBlank(message = "分类名称不能为空") @RequestParam String name,
-
-            @Parameter(description = "父分类ID，0表示根分类", example = "0")
-            @RequestParam(defaultValue = "0") Long parentId,
-
+            @Parameter(description = "分类信息", required = true)
+            @Valid @RequestBody CategoryCreateDTO dto,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = ((UserPrincipal) userDetails).getId();
-        CategoryEntity category = categoryService.create(name, parentId, userId);
+        CategoryEntity category = categoryService.create(dto.getName(), dto.getParentId(), userId);
         return Result.success(category);
     }
 

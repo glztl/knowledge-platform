@@ -258,6 +258,8 @@ public class DocumentServiceImpl extends ServiceImpl<DocumentMapper, DocumentEnt
         vo.setCreatedAt(document.getCreatedAt());
         vo.setUpdatedAt(document.getUpdatedAt());
 
+        vo.setUserId(document.getUserId());
+
         // 查询分类名称
         if (document.getCategoryId() != null && document.getCategoryId() != 0) {
             CategoryEntity category = categoryMapper.selectById(document.getCategoryId());

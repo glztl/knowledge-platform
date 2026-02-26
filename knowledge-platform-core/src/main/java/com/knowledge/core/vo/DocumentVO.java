@@ -23,6 +23,9 @@ public class DocumentVO implements Serializable {
     @Schema(description = "文档ID", example = "1")
     private Long id;
 
+    @Schema(description = "文档所有者ID")
+    private Long userId;
+
     @Schema(description = "文档标题", example = "Spring Boot 快速入门")
     private String title;
 

@@ -2,6 +2,7 @@ package com.knowledge.core.controller;
 
 import com.knowledge.core.common.exception.BusinessException;
 import com.knowledge.core.common.result.Result;
+import com.knowledge.core.dto.TagCreateDTO;
 import com.knowledge.core.entity.TagEntity;
 import com.knowledge.core.entity.UserPrincipal;
 import com.knowledge.core.service.TagService;
@@ -11,6 +12,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -48,11 +50,11 @@ public class TagController {
     @PostMapping
     public Result<TagEntity> create(
             @Parameter(description = "标签名称", required = true, example = "Java")
-            @NotBlank(message = "标签名称不能为空") @RequestParam String name,
-
+//            @NotBlank(message = "标签名称不能为空") @RequestParam String name,
+            @Valid @RequestBody TagCreateDTO dto,
             @AuthenticationPrincipal UserDetails userDetails) {
         Long userId = ((UserPrincipal) userDetails).getId();
-        TagEntity tag = tagService.create(name, userId);
+        TagEntity tag = tagService.create(dto.getName(), userId);
         return Result.success(tag);
     }
 

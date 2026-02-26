@@ -75,12 +75,12 @@ public class DocumentShareServiceImpl implements DocumentShareService {
         document.setSharePassword(sharePassword);
         document.setShareExpireAt(expireAt);
 
-        // 如果设置为公开访问
-        if (Boolean.TRUE.equals(dto.getPublicAccess())) {
-            document.setIsPublic(1);
-        } else {
-            document.setIsPublic(0);
-        }
+//        // 如果设置为公开访问
+//        if (Boolean.TRUE.equals(dto.getPublicAccess())) {
+//            document.setIsPublic(1);
+//        } else {
+//            document.setIsPublic(0);
+//        }
 
         documentMapper.updateById(document);
 
@@ -89,9 +89,11 @@ public class DocumentShareServiceImpl implements DocumentShareService {
         vo.setTitle(document.getTitle());
         vo.setShareToken(shareToken);
 
-        String shareUrl = String.format("http://localhost:%d%s/share/%s",
-                port, contextPath, shareToken);
-        vo.setShareUrl(shareUrl);
+//        String shareUrl = String.format("http://localhost:%d%s/share/%s",
+//                port, contextPath, shareToken);
+
+        String frontendUrl = "http://localhost:3000/share/" + shareToken;
+        vo.setShareUrl(frontendUrl);
         vo.setRequirePassword(Boolean.TRUE.equals(dto.getRequirePassword()));
         vo.setExpireAt(expireAt);
         vo.setPermanent(dto.getExpireHours() == null || dto.getExpireHours() == 0);
