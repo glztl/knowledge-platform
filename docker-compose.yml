@@ -50,7 +50,7 @@ services:
   # ========== 后端服务 ==========
   backend:
     build:
-      context: ./backend
+      context: ./knowledge-platform-core
       dockerfile: Dockerfile
     container_name: knowledge-backend
     restart: always
