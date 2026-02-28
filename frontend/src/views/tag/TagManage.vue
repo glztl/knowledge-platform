@@ -140,7 +140,7 @@ const handleAdd = () => {
 }
 
 // 删除标签
-const handleDelete = (tag) => {
+const handleDelete = (tag: { id: number; name: string }) => {
   ElMessageBox.confirm(
     `确定要删除标签 "${tag.name}" 吗？删除后该标签将从所有文档中移除。`,
     '提示',

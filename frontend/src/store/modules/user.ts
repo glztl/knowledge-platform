@@ -2,7 +2,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { login as loginApi, getUserInfo as getUserInfoApi } from '@/api/user'
-import type { LoginParams, UserInfo } from '@/api/user'
+import type { LoginParams, UserInfo as ApiUserInfo } from '@/api/user'
 
 export interface UserInfo {
   id: number
@@ -10,6 +10,7 @@ export interface UserInfo {
   email: string
   nickname: string
   avatar: string
+  createdAt: string
 }
 
 export const useUserStore = defineStore('user', () => {

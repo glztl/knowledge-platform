@@ -19,6 +19,7 @@ export interface UserInfo {
   email: string
   nickname: string
   avatar: string
+  createdAt: string
 }
 
 export interface LoginResult {

@@ -231,6 +231,7 @@ const handleSave = async () => {
     if (isEdit.value && form.id) {
       // 更新文档
       await updateDocument(form.id, {
+        id: form.id,
         title: form.title,
         content: form.content,
         categoryId: form.categoryId,

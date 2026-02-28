@@ -16,6 +16,7 @@ export interface DocumentDetail {
   title: string
   content: string
   categoryName?: string
+  categoryId?: number
   tagNames?: string[]
   isPublic: number
   viewCount: number

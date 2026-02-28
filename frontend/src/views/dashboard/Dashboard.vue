@@ -1,473 +1,293 @@
 <!-- src/views/dashboard/Dashboard.vue -->
 <template>
-  <div class="dashboard-container">
-    <div class="dashboard-header">
-      <h1>📊 仪表盘</h1>
-      <p>欢迎回来，{{ userNickname }}！</p>
+  <div class="dashboard">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="header-text">
+        <h1>仪表盘</h1>
+        <p>欢迎回来，{{ userNickname }}</p>
+      </div>
     </div>
 
-    <el-row :gutter="20" class="stats-container">
-      <el-col :xs="24" :sm="12" :md="6" :lg="6">
-        <el-card class="stat-card">
-          <div class="stat-icon stat-icon-doc">
-            <el-icon><Document /></el-icon>
-          </div>
-          <div class="stat-content">
-            <div class="stat-title">文档总数</div>
-            <div class="stat-value">{{ stats.totalDocuments }}</div>
-            <div class="stat-desc">比上周增加 {{ stats.documentGrowth }}%</div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :xs="24" :sm="12" :md="6" :lg="6">
-        <el-card class="stat-card">
-          <div class="stat-icon stat-icon-category">
-            <el-icon><Folder /></el-icon>
-          </div>
-          <div class="stat-content">
-            <div class="stat-title">分类数量</div>
-            <div class="stat-value">{{ stats.totalCategories }}</div>
-            <div class="stat-desc">共 {{ stats.totalCategories }} 个分类</div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :xs="24" :sm="12" :md="6" :lg="6">
-        <el-card class="stat-card">
-          <div class="stat-icon stat-icon-tag">
-            <el-icon><PriceTag /></el-icon>
-          </div>
-          <div class="stat-content">
-            <div class="stat-title">标签数量</div>
-            <div class="stat-value">{{ stats.totalTags }}</div>
-            <div class="stat-desc">共 {{ stats.totalTags }} 个标签</div>
-          </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :xs="24" :sm="12" :md="6" :lg="6">
-        <el-card class="stat-card">
-          <div class="stat-icon stat-icon-view">
-            <el-icon><View /></el-icon>
-          </div>
-          <div class="stat-content">
-            <div class="stat-title">总浏览量</div>
-            <div class="stat-value">{{ stats.totalViews }}</div>
-            <div class="stat-desc">累计 {{ stats.totalViews }} 次浏览</div>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon blue"><el-icon><Document /></el-icon></div>
+        <div>
+          <div class="stat-label">文档</div>
+          <div class="stat-value">{{ stats.totalDocuments }}</div>
+        </div>
+      </div>
 
-    <el-row :gutter="20" class="content-container">
-      <el-col :xs="24" :md="16">
-        <el-card class="recent-docs-card">
-          <template #header>
-            <div class="card-header">
-              <span>📝 最近文档</span>
-              <el-button 
-                type="primary" 
-                size="small" 
-                @click="$router.push('/document/create')"
-              >
-                <el-icon><Plus /></el-icon>
-                新建文档
-              </el-button>
-            </div>
-          </template>
-          
-          <el-empty 
-            v-if="loading" 
-            description="加载中..."
-          />
-          
-          <el-empty 
-            v-else-if="recentDocuments.length === 0" 
-            description="暂无文档，点击右上角新建文档"
-          />
-          
-          <div v-else class="document-list">
-            <div 
-              v-for="doc in recentDocuments" 
-              :key="doc.id" 
-              class="document-item"
-              @click="$router.push(`/document/${doc.id}`)"
-            >
-              <div class="document-title">
-                <el-icon><Document /></el-icon>
-                <span>{{ doc.title }}</span>
-              </div>
-              <div class="document-meta">
-                <span class="category" v-if="doc.categoryName">
-                  <el-icon><Folder /></el-icon>
-                  {{ doc.categoryName }}
-                </span>
-                <span class="time">
-                  <el-icon><Clock /></el-icon>
-                  {{ formatTime(doc.updatedAt) }}
-                </span>
-                <span class="views">
-                  <el-icon><View /></el-icon>
-                  {{ doc.viewCount || 0 }}
-                </span>
-              </div>
+      <div class="stat-card">
+        <div class="stat-icon green"><el-icon><Folder /></el-icon></div>
+        <div>
+          <div class="stat-label">分类</div>
+          <div class="stat-value">{{ stats.totalCategories }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon orange"><el-icon><PriceTag /></el-icon></div>
+        <div>
+          <div class="stat-label">标签</div>
+          <div class="stat-value">{{ stats.totalTags }}</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon gray"><el-icon><View /></el-icon></div>
+        <div>
+          <div class="stat-label">浏览</div>
+          <div class="stat-value">{{ stats.totalViews }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+      <!-- Recent Documents -->
+      <div class="card recent-docs">
+        <div class="card-header">
+          <div>最近文档</div>
+          <button class="apple-btn" @click="$router.push('/document/create')">新建</button>
+        </div>
+
+        <div v-if="loading" class="empty">加载中...</div>
+        <div v-else-if="recentDocuments.length === 0" class="empty">暂无文档</div>
+        <div v-else>
+          <div v-for="doc in recentDocuments" :key="doc.id" class="doc-item" @click="$router.push(`/document/${doc.id}`)">
+            <div class="doc-title">{{ doc.title }}</div>
+            <div class="doc-meta">
+              <span v-if="doc.categoryName">{{ doc.categoryName }}</span>
+              <span>{{ formatTime(doc.updatedAt) }}</span>
+              <span>{{ doc.viewCount || 0 }} 浏览</span>
             </div>
           </div>
-        </el-card>
-      </el-col>
-      
-      <el-col :xs="24" :md="8">
-        <el-card class="quick-actions-card">
-          <template #header>
-            <div class="card-header">
-              <span>⚡ 快捷操作</span>
-            </div>
-          </template>
-          
-          <div class="quick-actions">
-            <el-button 
-              type="primary" 
-              plain 
-              size="large" 
-              class="quick-action-btn"
-              @click="$router.push('/document/create')"
-            >
-              <el-icon><Edit /></el-icon>
-              <span>新建文档</span>
-            </el-button>
-            
-            <el-button 
-              type="success" 
-              plain 
-              size="large" 
-              class="quick-action-btn"
-              @click="$router.push('/category')"
-            >
-              <el-icon><Folder /></el-icon>
-              <span>管理分类</span>
-            </el-button>
-            
-            <el-button 
-              type="warning" 
-              plain 
-              size="large" 
-              class="quick-action-btn"
-              @click="$router.push('/tag')"
-            >
-              <el-icon><PriceTag /></el-icon>
-              <span>管理标签</span>
-            </el-button>
-            
-            <el-button 
-              type="info" 
-              plain 
-              size="large" 
-              class="quick-action-btn"
-              @click="$router.push('/profile')"
-            >
-              <el-icon><User /></el-icon>
-              <span>个人中心</span>
-            </el-button>
-          </div>
-        </el-card>
-      </el-col>
-    </el-row>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="card quick-actions">
+        <div class="card-header">快捷操作</div>
+        <div class="actions">
+          <button class="action-btn" @click="$router.push('/document/create')">新建文档</button>
+          <button class="action-btn" @click="$router.push('/category')">管理分类</button>
+          <button class="action-btn" @click="$router.push('/tag')">管理标签</button>
+          <button class="action-btn" @click="$router.push('/profile')">个人中心</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { useRouter } from 'vue-router'
-import { ElMessage } from 'element-plus'
-import { 
-  Document, Folder, PriceTag, View, Plus, Clock, Edit, User 
-} from '@element-plus/icons-vue'
-import { useUserStore } from '@/store/modules/user'
-import { listDocuments } from '@/api/document'
-import { getCategoryTree } from '@/api/category'
-import { getTagList } from '@/api/tag'
+import { ref, computed, onMounted } from "vue"
+import { useRouter } from "vue-router"
+import { Document, Folder, PriceTag, View } from "@element-plus/icons-vue"
+import { useUserStore } from "@/store/modules/user"
+import { listDocuments } from "@/api/document"
+import { getCategoryTree } from "@/api/category"
+import { getTagList } from "@/api/tag"
+import { ElMessage } from "element-plus"
 
-// 用户信息
+const router = useRouter()
 const userStore = useUserStore()
-const userNickname = computed(() => 
-  userStore.userInfo?.nickname || userStore.userInfo?.username || '用户'
+
+const userNickname = computed(() =>
+  userStore.userInfo?.nickname || userStore.userInfo?.username || "用户"
 )
 
-// 统计数据
+const loading = ref(false)
+const recentDocuments = ref<any[]>([])
 const stats = ref({
   totalDocuments: 0,
-  documentGrowth: 12,
   totalCategories: 0,
   totalTags: 0,
   totalViews: 0
 })
 
-// 最近文档
-const recentDocuments = ref<any[]>([])
-const loading = ref(false)
-
-// 路由
-const router = useRouter()
-
-// 格式化时间
 const formatTime = (time: string | Date) => {
-  if (!time) return ''
   const date = new Date(time)
   const now = new Date()
   const diff = now.getTime() - date.getTime()
-  const diffHours = Math.floor(diff / (1000 * 60 * 60))
-  
-  if (diffHours < 24) {
-    return `${diffHours}小时前`
-  } else if (diffHours < 48) {
-    return '昨天'
-  } else {
-    return date.toLocaleDateString()
-  }
+  const hours = Math.floor(diff / 3600000)
+  if (hours < 24) return `${hours}小时前`
+  if (hours < 48) return "昨天"
+  return date.toLocaleDateString()
 }
 
-// 递归计算分类数量（包括子分类）
-const countCategories = (categories: any[]): number => {
-  if (!categories || categories.length === 0) return 0
-  
+const countCategories = (list: any[]): number => {
   let count = 0
-  for (const category of categories) {
-    count++ // 当前分类
-    if (category.children && Array.isArray(category.children)) {
-      count += countCategories(category.children) // 递归子分类
-    }
-  }
+  list.forEach(item => {
+    count++
+    if (item.children) count += countCategories(item.children)
+  })
   return count
 }
 
-// 获取统计数据
+type DocumentItem = {
+  id: number | string
+  title: string
+  updatedAt: string | Date
+  viewCount?: number
+  categoryName?: string
+}
+
 const fetchStats = async () => {
   loading.value = true
-  
   try {
-    // 1. 获取文档列表（前5条作为最近文档）
     const docRes = await listDocuments(1, 5)
-    
-    // ✅ 修复1：适配实际返回格式（可能是直接数组）
-    const documents = Array.isArray(docRes.data) ? docRes.data : (docRes.data?.list || [])
-    
-    recentDocuments.value = documents
-    stats.value.totalDocuments = documents.length
-    
-    // ✅ 修复2：安全累加 viewCount（处理 null/undefined）
-    stats.value.totalViews = documents.reduce((sum, doc) => 
-      sum + (Number(doc.viewCount) || 0), 0
-    )
-    
-    // 2. 获取分类树
-    try {
-      const categoryRes = await getCategoryTree()
-      // ✅ 修复3：适配实际返回格式
-      const categories = Array.isArray(categoryRes.data) ? categoryRes.data : []
-      
-      stats.value.totalCategories = countCategories(categories)
-    } catch (error) {
-      console.warn('获取分类失败，使用默认值:', error)
-      stats.value.totalCategories = 5 // 默认值
-    }
-    
-    // 3. 获取标签列表
-    try {
-      const tagRes = await getTagList()
-      // ✅ 修复4：适配实际返回格式
-      const tags = Array.isArray(tagRes.data) ? tagRes.data : []
-      
-      stats.value.totalTags = tags.length
-    } catch (error) {
-      console.warn('获取标签失败，使用默认值:', error)
-      stats.value.totalTags = 8 // 默认值
-    }
-    
-  } catch (error) {
-    ElMessage.error('获取统计数据失败')
-    console.error('仪表盘数据加载错误:', error)
+    const docs = Array.isArray(docRes.data) ? docRes.data : docRes.data?.list || []
+    recentDocuments.value = docs
+    stats.value.totalDocuments = docs.length
+    stats.value.totalViews = docs.reduce((sum: number, d: DocumentItem) => sum + (Number(d.viewCount) || 0), 0)
+
+    const categoryRes = await getCategoryTree()
+    stats.value.totalCategories = countCategories(categoryRes.data || [])
+
+    const tagRes = await getTagList()
+    stats.value.totalTags = tagRes.data?.length || 0
+  } catch {
+    ElMessage.error("加载失败")
   } finally {
     loading.value = false
   }
 }
 
-// 初始化
-onMounted(() => {
-  fetchStats()
-})
+onMounted(fetchStats)
 </script>
 
 <style scoped>
-.dashboard-container {
-  padding: 20px;
+.dashboard {
+  padding: 40px;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 20% 10%, #e8f2ff 0%, transparent 40%),
+    radial-gradient(circle at 80% 20%, #fff1f1 0%, transparent 40%),
+    radial-gradient(circle at 40% 80%, #f0fff4 0%, transparent 40%),
+    #f5f5f7;
 }
 
-.dashboard-header {
+/* Header */
+.header h1 {
+  font-size: 34px;
+  font-weight: 700;
+  background: linear-gradient(90deg,#0071e3,#5e5ce6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.header p { color: #6e6e73; font-size: 15px; }
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+  gap: 22px;
   margin-bottom: 30px;
 }
-
-.dashboard-header h1 {
-  font-size: 28px;
-  color: #303133;
-  margin-bottom: 10px;
-}
-
-.dashboard-header p {
-  color: #606266;
-  font-size: 16px;
-}
-
-.stats-container {
-  margin-bottom: 30px;
-}
-
 .stat-card {
-  height: 120px;
-  cursor: default;
-  transition: all 0.3s;
+  background: rgba(255,255,255,0.7);
+  backdrop-filter: blur(20px);
+  border-radius: 20px;
+  padding: 22px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  transition: all .25s ease;
+  border: 1px solid rgba(255,255,255,0.4);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
 }
-
 .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-6px) scale(1.02);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.12);
 }
-
 .stat-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
-  float: left;
-  margin-right: 15px;
+  font-size: 22px;
+}
+.blue { background: linear-gradient(135deg,#0071e3,#5ac8fa); color: white; box-shadow: 0 6px 20px rgba(0,113,227,0.4);}
+.green { background: linear-gradient(135deg,#34c759,#30d158); color: white; box-shadow: 0 6px 20px rgba(52,199,89,0.4);}
+.orange { background: linear-gradient(135deg,#ff9f0a,#ffcc00); color: white; box-shadow: 0 6px 20px rgba(255,159,10,0.4);}
+.gray { background: linear-gradient(135deg,#8e8e93,#c7c7cc); color: white; box-shadow: 0 6px 20px rgba(142,142,147,0.4);}
+.stat-value { font-size: 26px; font-weight: 700; margin-top: 2px;}
+.stat-label { color: #6e6e73; font-size: 13px; }
+
+/* Content: 左右布局 */
+.content {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
 }
 
-.stat-icon-doc {
-  background-color: rgba(64, 158, 255, 0.1);
-  color: #409EFF;
+/* 卡片 */
+.card {
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(20px);
+  border-radius: 22px;
+  padding: 22px;
+  border: 1px solid rgba(255,255,255,0.4);
+  box-shadow: 0 10px 35px rgba(0,0,0,0.06);
 }
 
-.stat-icon-category {
-  background-color: rgba(114, 189, 74, 0.1);
-  color: #72BD4A;
-}
-
-.stat-icon-tag {
-  background-color: rgba(230, 162, 60, 0.1);
-  color: #E6A23C;
-}
-
-.stat-icon-view {
-  background-color: rgba(144, 147, 153, 0.1);
-  color: #909399;
-}
-
-.stat-icon i {
-  font-size: 28px;
-}
-
-.stat-content {
-  overflow: hidden;
-  padding-top: 8px;
-}
-
-.stat-title {
-  font-size: 14px;
-  color: #909399;
-  margin-bottom: 4px;
-}
-
-.stat-value {
-  font-size: 24px;
-  color: #303133;
-  font-weight: bold;
-  margin-bottom: 4px;
-}
-
-.stat-desc {
-  font-size: 12px;
-  color: #909399;
-}
-
-.content-container {
-  margin-top: 20px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.document-list {
-  padding: 0 10px;
-}
-
-.document-item {
-  padding: 15px;
-  border-bottom: 1px solid #f0f2f5;
+/* 按钮 */
+.apple-btn {
+  background: linear-gradient(135deg,#0071e3,#5e5ce6);
+  border: none;
+  color: white;
+  padding: 7px 16px;
+  border-radius: 999px;
   cursor: pointer;
-  transition: background-color 0.2s;
-}
-
-.document-item:hover {
-  background-color: #f9fafc;
-}
-
-.document-item:last-child {
-  border-bottom: none;
-}
-
-.document-title {
-  display: flex;
-  align-items: center;
-  font-size: 16px;
-  color: #303133;
-  margin-bottom: 8px;
-}
-
-.document-title i {
-  margin-right: 8px;
-  color: #409EFF;
-}
-
-.document-meta {
-  display: flex;
-  align-items: center;
-  font-size: 12px;
-  color: #909399;
-}
-
-.document-meta span {
-  display: flex;
-  align-items: center;
-  margin-right: 15px;
-}
-
-.document-meta i {
-  margin-right: 4px;
   font-size: 14px;
+  transition: .2s;
+}
+.apple-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0,113,227,0.4);
 }
 
-.quick-actions {
+/* 文档 */
+.doc-item {
+  padding: 14px;
+  border-radius: 14px;
+  transition: .2s;
+}
+.doc-item:hover {
+  background: rgba(0,113,227,0.06);
+  transform: translateX(4px);
+}
+
+/* 快捷按钮 - 竖向排列 */
+.actions {
   display: flex;
-  flex-direction: column;
-  gap: 15px;
+  flex-direction: column; /* 保证竖向 */
+  gap: 12px; /* 按钮间距 */
 }
 
-.quick-action-btn {
-  width: 100%;
-  height: 60px;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* 快捷按钮样式 */
+.action-btn {
+  border: none;
+  background: linear-gradient(135deg,#f2f2f7,#ffffff);
+  padding: 13px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: .2s;
+}
+.action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.1);
 }
 
-.quick-action-btn i {
-  margin-right: 10px;
-  font-size: 20px;
+/* Empty */
+.empty {
+  padding: 40px;
+  color: #8e8e93;
 }
 </style>

@@ -1,81 +1,46 @@
+# /opt/knowledge-platform/docker-compose.yml
 version: '3.8'
 
 services:
-  # ========== MySQL 数据库 ==========
-  mysql:
-    image: mysql:8.0
-    container_name: knowledge-mysql
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password_123}
-      MYSQL_DATABASE: knowledge_platform
-      MYSQL_USER: ${MYSQL_USER:-knowledge_user}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-user_password_123}
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql-data:/var/lib/mysql
-      - ./mysql/init:/docker-entrypoint-initdb.d
-    networks:
-      - knowledge-network
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ========== MinIO 对象存储 ==========
-  minio:
-    image: minio/minio:latest
-    container_name: knowledge-minio
-    restart: always
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minio_password_123}
-    volumes:
-      - minio-data:/data
-      - minio-config:/root/.minio
-    command: server /data --console-address ":9001"
-    networks:
-      - knowledge-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-
-  # ========== 后端服务 ==========
+  # ========== Backend ==========
   backend:
     build:
-      context: ./knowledge-platform-core
+      context: ./backend
       dockerfile: Dockerfile
     container_name: knowledge-backend
     restart: always
     ports:
       - "${BACKEND_PORT:-10000}:10000"
     environment:
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      SPRING_PROFILES_ACTIVE: prod
+
+      SPRING_DATASOURCE_URL: jdbc:mysql://${IP_ADDR}:${MYSQL_PORT:-3306}/${MYSQL_DATABASE}?useSSL=false&serverTimezone=Asia/Shanghai&characterEncoding=utf8
+      SPRING_DATASOURCE_USERNAME: ${MYSQL_USER}
+      SPRING_DATASOURCE_PASSWORD: ${MYSQL_PASSWORD}
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+
+      MINIO_ENDPOINT: http://${IP_ADDR}:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+      MINIO_BUCKET: knowledge-files
+
+
+      #SPRING_REDIS_HOST: 172.17.0.1
+      #SPRING_REDIS_PORT: 6379
+
       JWT_SECRET: ${JWT_SECRET}
-    depends_on:
-      mysql:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
+
+      SERVER_PORT: 10000
+      SERVER_SERVLET_CONTEXT_PATH: /api
     networks:
-      - knowledge-network
+      - knowledge-net
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:10000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-
-  # ========== Nginx（前端 + 反向代理） ==========
+  # ========== Nginx ==========
   nginx:
     image: nginx:alpine
     container_name: knowledge-nginx
@@ -89,16 +54,8 @@ services:
     depends_on:
       - backend
     networks:
-      - knowledge-network
-
-volumes:
-  mysql-data:
-    driver: local
-  minio-data:
-    driver: local
-  minio-config:
-    driver: local
+      - knowledge-net
 
 networks:
-  knowledge-network:
+  knowledge-net:
     driver: bridge

@@ -12,26 +12,26 @@
             返回
           </el-button>
           <div class="title-section">
-            <h1 class="document-title">{{ document.title }}</h1>
+            <h1 class="document-title">{{ documentData.title }}</h1>
             <div class="meta-info">
               <span class="meta-item">
                 <el-icon><Folder /></el-icon>
-                {{ document.categoryName || '未分类' }}
+                {{ documentData.categoryName || '未分类' }}
               </span>
               <span class="meta-item">
                 <el-icon><View /></el-icon>
-                {{ document.viewCount || 0 }} 浏览
+                {{ documentData.viewCount || 0 }} 浏览
               </span>
               <span class="meta-item">
                 <el-icon><Timer /></el-icon>
-                {{ formatDate(document.updatedAt) }}
+                {{ formatDate(documentData.updatedAt) }}
               </span>
               <span 
-                v-if="document.isPublic || document.shareToken" 
+                v-if="documentData.isPublic || documentData.shareToken" 
                 class="meta-item public-tag"
               >
                 <el-icon><Unlock /></el-icon>
-                {{ document.shareToken ? '已分享' : '公开' }}
+                {{ documentData.shareToken ? '已分享' : '公开' }}
               </span>
             </div>
           </div>
@@ -42,7 +42,7 @@
               @click="handleShare"
             >
               <el-icon><Share /></el-icon>
-              {{ document.shareToken ? '分享设置' : '分享' }}
+              {{ documentData.shareToken ? '分享设置' : '分享' }}
             </el-button>
             <el-button 
               v-if="isOwner"
@@ -56,7 +56,7 @@
         </div>
       </template>
       
-      <div class="document-content" v-if="document.content">
+      <div class="document-content" v-if="documentData.content">
         <div 
           class="markdown-content" 
           v-html="renderedContent"
@@ -69,9 +69,9 @@
       />
       
       <!-- 标签区域 -->
-      <div v-if="document.tagNames?.length" class="tag-section">
+      <div v-if="documentData.tagNames?.length" class="tag-section">
         <el-tag 
-          v-for="(tag, index) in document.tagNames" 
+          v-for="(tag, index) in documentData.tagNames" 
           :key="index" 
           type="info" 
           size="small"
@@ -83,9 +83,9 @@
     </el-card>
     
     <!-- 分享设置对话框 -->
-    <el-dialog
+      <el-dialog
       v-model="shareDialogVisible"
-      :title="document.shareToken ? '分享设置' : '生成分享链接'"
+      :title="documentData.shareToken ? '分享设置' : '生成分享链接'"
       width="500px"
       @close="resetShareForm"
     >
@@ -122,14 +122,14 @@
           </el-select>
         </el-form-item>
         
-        <el-form-item v-if="document.shareToken" label="当前链接">
+        <el-form-item v-if="documentData.shareToken" label="当前链接">
           <el-input 
             v-model="currentShareUrl" 
             readonly
-            @click="copyShareUrl"
+            @click="handleCopyClick"
           >
             <template #append>
-              <el-button @click="copyShareUrl">复制</el-button>
+              <el-button @click="handleCopyClick">复制</el-button>
             </template>
           </el-input>
         </el-form-item>
@@ -137,7 +137,7 @@
       
       <template #footer>
         <el-button 
-          v-if="document.shareToken"
+          v-if="documentData.shareToken"
           type="danger"
           @click="handleCancelShare"
         >
@@ -149,7 +149,7 @@
           @click="handleSubmitShare"
           :loading="sharing"
         >
-          {{ sharing ? '处理中...' : (document.shareToken ? '更新设置' : '生成链接') }}
+          {{ sharing ? '处理中...' : (documentData.shareToken ? '更新设置' : '生成链接') }}
         </el-button>
       </template>
     </el-dialog>
@@ -195,9 +195,9 @@ const route = useRoute()
 const userStore = useUserStore()
 
 // 文档数据
-const document = ref<any>({})
+const documentData = ref<any>({})
 const loading = ref(false)
-const isOwner = ref(false) // 是否是文档所有者
+const isOwner = ref(false)
 
 // 分享相关
 const shareDialogVisible = ref(false)
@@ -225,9 +225,9 @@ const formatDate = (date: string | Date | undefined) => {
 
 // 渲染 Markdown 内容
 const renderedContent = computed(() => {
-  if (!document.value.content) return ''
+  if (!documentData.value.content) return ''
   
-  let html = document.value.content
+  let html = documentData.value.content
     .replace(/^### (.*$)/gim, '<h3>$1</h3>')
     .replace(/^## (.*$)/gim, '<h2>$1</h2>')
     .replace(/^# (.*$)/gim, '<h1>$1</h1>')
@@ -242,31 +242,59 @@ const renderedContent = computed(() => {
   return DOMPurify.sanitize(html)
 })
 
+// 🔧 通用剪贴板复制函数（带降级方案，兼容 HTTP/HTTPS）
+const copyToClipboard = async (text: string): Promise<boolean> => {
+  // 优先使用现代 Clipboard API（需 HTTPS 或 localhost）
+  if (navigator.clipboard && window.isSecureContext) {
+    try {
+      await navigator.clipboard.writeText(text)
+      return true
+    } catch (e) {
+      console.warn('🔐 navigator.clipboard 失败，尝试降级方案', e)
+    }
+  }
+  
+  // 降级方案：使用 document.execCommand('copy')
+  try {
+    const textarea = document.createElement('textarea')
+    textarea.value = text
+    // 隐藏 textarea，避免页面跳动
+    textarea.style.position = 'fixed'
+    textarea.style.left = '-9999px'
+    textarea.style.top = '-9999px'
+    textarea.style.opacity = '0'
+    textarea.setAttribute('readonly', '')
+    textarea.setAttribute('aria-hidden', 'true')
+    
+    document.body.appendChild(textarea)
+    textarea.focus()
+    textarea.select()
+    
+    const success = document.execCommand('copy')
+    document.body.removeChild(textarea)
+    return success
+  } catch (e) {
+    console.error('✂️ execCommand 复制失败', e)
+    return false
+  }
+}
+
 // 获取文档详情
 const fetchDocument = async () => {
   loading.value = true
   try {
     const id = Number(route.params.id)
     const res = await getDocument(id)
-    document.value = res.data || {}
+    documentData.value = res.data || {}
     
-    // 使用类型转换后的宽松比较
     const currentUserId = userStore.userInfo?.id
-    const documentUserId = document.value.userId
+    const documentUserId = documentData.value.userId
     
-    // 安全的类型转换比较
     isOwner.value = 
       !!currentUserId && 
       !!documentUserId &&
       Number(currentUserId) === Number(documentUserId)
     
-    // 调试输出
-    console.log('🔍 文档所有者检查:')
-    console.log('  当前用户ID:', currentUserId, '类型:', typeof currentUserId)
-    console.log('  文档所有者ID:', documentUserId, '类型:', typeof documentUserId)
-    console.log('  isOwner:', isOwner.value)
-    
-    // 其他逻辑（获取分类、标签等）
   } catch (error: any) {
     ElMessage.error(error.response?.data?.message || '获取文档失败')
     console.error('获取文档失败:', error)
@@ -283,12 +311,12 @@ const handleBack = () => {
 
 // 编辑文档
 const handleEdit = () => {
-  router.push(`/document/edit/${document.value.id}`)
+  router.push(`/document/edit/${documentData.value.id}`)
 }
 
 // 打开分享对话框
 const handleShare = () => {
-    shareDialogVisible.value = true
+  shareDialogVisible.value = true
 }
 
 // 重置分享表单
@@ -305,9 +333,8 @@ const resetShareForm = () => {
 const handleSubmitShare = async () => {
   sharing.value = true
   try {
-    // 构建请求数据
     const dto = {
-      id: document.value.id,
+      id: documentData.value.id,
       requirePassword: !shareForm.value.publicAccess && !!shareForm.value.password,
       password: shareForm.value.password || undefined,
       expireHours: shareForm.value.expireHours,
@@ -315,25 +342,22 @@ const handleSubmitShare = async () => {
     }
     
     let res
-    if (document.value.shareToken) {
-      // 更新分享设置
+    if (documentData.value.shareToken) {
       res = await updateShareSettings(dto)
     } else {
-      // 生成新分享链接
       res = await generateShareLink(dto)
     }
     
     // 更新文档分享信息
-    document.value.shareToken = res.data.shareToken
-    document.value.isPublic = shareForm.value.publicAccess ? 1 : 0
-    
-    // 生成分享URL
+    documentData.value.shareToken = res.data.shareToken
+    documentData.value.isPublic = shareForm.value.publicAccess ? 1 : 0
     currentShareUrl.value = res.data.shareUrl
     
-    ElMessage.success(document.value.shareToken ? '分享设置已更新' : '分享链接已生成')
+    ElMessage.success(documentData.value.shareToken ? '分享设置已更新' : '分享链接已生成')
     
-    // 自动复制链接
-    await copyShareUrl()
+    // ✅ 重要：不在此处自动复制（异步后可能失去用户交互上下文）
+    // 改为提示用户点击输入框旁的「复制」按钮
+    ElMessage.info('请点击链接旁的「复制」按钮获取分享链接')
     
   } catch (error: any) {
     ElMessage.error(error.response?.data?.message || '分享操作失败')
@@ -355,9 +379,9 @@ const handleCancelShare = () => {
     }
   ).then(async () => {
     try {
-      await cancelShare(document.value.id)
-      document.value.shareToken = null
-      document.value.isPublic = 0
+      await cancelShare(documentData.value.id)
+      documentData.value.shareToken = null
+      documentData.value.isPublic = 0
       shareDialogVisible.value = false
       ElMessage.success('分享已取消')
     } catch (error: any) {
@@ -367,13 +391,33 @@ const handleCancelShare = () => {
   })
 }
 
-// 复制分享链接
-const copyShareUrl = async () => {
-  try {
-    await navigator.clipboard.writeText(currentShareUrl.value)
+// 🔧 复制分享链接（绑定用户点击事件，确保在交互上下文中执行）
+const handleCopyClick = async () => {
+  if (!currentShareUrl.value) {
+    ElMessage.warning('暂无可复制的链接')
+    return
+  }
+  
+  // 调试日志（生产环境可移除）
+  console.log('🔐 安全上下文:', window.isSecureContext)
+  console.log('📋 clipboard API 可用:', !!navigator.clipboard)
+  
+  const success = await copyToClipboard(currentShareUrl.value)
+  
+  if (success) {
     copySuccessVisible.value = true
-  } catch (error) {
-    ElMessage.error('复制失败，请手动复制链接')
+  } else {
+    // 复制失败时，提供备选方案：选中输入框内容方便手动复制
+    ElMessage.warning('自动复制失败，已选中链接，请按 Ctrl+C 手动复制')
+    
+    // 尝试选中输入框中的文本（Element Plus 的 input 需要特殊处理）
+    setTimeout(() => {
+      const inputEl = document.querySelector('.el-input__inner') as HTMLInputElement
+      if (inputEl) {
+        inputEl.focus()
+        inputEl.select()
+      }
+    }, 100)
   }
 }
 
@@ -528,5 +572,13 @@ onMounted(() => {
   color: #909399;
   font-size: 14px;
   margin-top: 10px;
+}
+
+/* 输入框点击时的高亮效果 */
+.el-input__inner {
+  cursor: pointer;
+}
+.el-input__inner:hover {
+  border-color: #409eff;
 }
 </style>

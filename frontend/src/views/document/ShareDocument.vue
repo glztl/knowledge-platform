@@ -21,26 +21,26 @@
     <el-card class="document-card" v-loading="loading">
       <template #header>
         <div class="card-header">
-          <h1 class="document-title">{{ document.title }}</h1>
+          <h1 class="document-title">{{ documentData.title }}</h1>
           <div class="meta-info">
             <span class="meta-item">
               <el-icon><View /></el-icon>
-              {{ document.viewCount || 0 }} 浏览
+              {{ documentData.viewCount || 0 }} 浏览
             </span>
             <span class="meta-item">
               <el-icon><Timer /></el-icon>
-              {{ formatDate(document.updatedAt) }}
+              {{ formatDate(documentData.updatedAt) }}
             </span>
             <span class="meta-item author">
               <el-icon><User /></el-icon>
-              {{ document.author?.nickname || '匿名用户' }}
+              {{ documentData.author?.nickname || '匿名用户' }}
             </span>
           </div>
         </div>
       </template>
       
       <el-empty 
-        v-if="!document.content" 
+        v-if="!documentData.content" 
         description="文档内容为空"
       />
       
@@ -55,9 +55,9 @@
       </div>
       
       <!-- 标签区域 -->
-      <div v-if="document.tagNames?.length" class="tag-section">
+      <div v-if="documentData.tagNames?.length" class="tag-section">
         <el-tag 
-          v-for="(tag, index) in document.tagNames" 
+          v-for="(tag, index) in documentData.tagNames" 
           :key="index" 
           type="info" 
           size="small"
@@ -157,7 +157,7 @@ const copySuccessVisible = ref(false)
 const verifying = ref(false)
 
 // 数据
-const document = ref<any>({})
+const documentData = ref<any>({})
 const passwordForm = ref({
   password: ''
 })
@@ -180,9 +180,9 @@ const formatDate = (date: string | Date | undefined) => {
 
 // 渲染 Markdown 内容
 const renderedContent = computed(() => {
-  if (!document.value.content) return ''
+  if (!documentData.value.content) return ''
   
-  let html = document.value.content
+  let html = documentData.value.content
     .replace(/^### (.*$)/gim, '<h3>$1</h3>')
     .replace(/^## (.*$)/gim, '<h2>$1</h2>')
     .replace(/^# (.*$)/gim, '<h1>$1</h1>')
@@ -210,7 +210,7 @@ const verifyPassword = async () => {
       token: shareToken.value,
       password: passwordForm.value.password
     })
-    document.value = res.data
+    documentData.value = res.data
     passwordDialogVisible.value = false
   } catch (error: any) {
     ElMessage.error(error.response?.data?.message || '密码错误或链接已失效')
@@ -228,7 +228,7 @@ const fetchSharedDocument = async () => {
     const res = await accessSharedDocument({
       token: shareToken.value
     })
-    document.value = res.data
+    documentData.value = res.data
   } catch (error: any) {
     // 如果需要密码，显示密码对话框
     if (error.response?.data?.code === 401 && 
@@ -257,16 +257,16 @@ const handleCopyLink = async () => {
 
 // 下载为 Markdown
 const handleDownload = () => {
-  const content = document.value.content || ''
-  const title = document.value.title || '未命名文档'
+  const content = documentData.value.content || ''
+  const title = documentData.value.title || '未命名文档'
   const blob = new Blob([content], { type: 'text/markdown;charset=utf-8' })
   const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
+  const a = window.document.createElement('a')
   a.href = url
   a.download = `${title}.md`
-  document.body.appendChild(a)
+  window.document.body.appendChild(a)
   a.click()
-  document.body.removeChild(a)
+  window.document.body.removeChild(a)
   URL.revokeObjectURL(url)
   ElMessage.success('下载成功')
 }
